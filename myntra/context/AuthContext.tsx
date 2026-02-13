@@ -1,80 +1,70 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { getUserData, saveUserData, clearUserData } from "@/utils/storage";
-import React from "react";
-import axios from "axios";
-type AuthContextType = {
-  isAuthenticated: boolean;
-  user: { _id: string; name: string; email: string } | null;
-  Signup: (fullName: string, email: string, password: string) => Promise<void>;
+import React, { createContext, useEffect, useState, useContext } from "react";
+import { saveItem, getItem, deleteItem } from "../utils/storage";
+import { API } from "../utils/api";
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  token: string;
+}
+
+interface AuthContextType {
+  user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signup: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{
-    _id: string;
-    name: string;
-    email: string;
-  } | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const data = await getUserData();
-      if (data._id && data.name && data.email) {
-        setUser({ _id: data._id, name: data.name, email: data.email });
-        setIsAuthenticated(true);
+    const loadUser = async () => {
+      const storedUser = await getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
       }
-    })();
+    };
+    loadUser();
   }, []);
 
   const login = async (email: string, password: string) => {
-    // 👉 Replace with your real API URL
-    const res = await axios.post("https://myntra-clone-xj36.onrender.com/user/login", {
-      email,
-      password,
-    });
+    const response = await API.post("/user/login", { email, password });
+    const { user, token } = response.data;
 
-    const data = await res.data.user;
-    if (data.fullName) {
-      await saveUserData(data._id, data.fullName, data.email);
-      setUser({ _id: data._id, name: data.name, email: data.email });
-      setIsAuthenticated(true);
-    } else {
-      throw new Error(data.message || "Login failed");
-    }
+    const userData = { ...user, token };
+    setUser(userData);
+    await saveItem("user", JSON.stringify(userData));
   };
-  const Signup = async (fullName: string, email: string, password: string) => {
-    // 👉 Replace with your real API URL
-    const res = await axios.post("https://myntra-clone-xj36.onrender.com/user/signup", {
-      fullName,
-      email,
-      password,
-    });
-    const data = await res.data.user;
-    if (data.fullName) {
-      await saveUserData(data._id, data.fullName, data.email);
-      setUser({ _id: data._id, name: data.name, email: data.email });
-      setIsAuthenticated(true);
-    } else {
-      throw new Error(data.message || "Login failed");
-    }
+
+  const signup = async (name: string, email: string, password: string) => {
+    const response = await API.post("/user/signup", { name, email, password });
+    const { user, token } = response.data;
+
+    const userData = { ...user, token };
+    setUser(userData);
+    await saveItem("user", JSON.stringify(userData));
   };
+
   const logout = async () => {
-    await clearUserData();
     setUser(null);
-    setIsAuthenticated(false);
+    await deleteItem("user");
   };
 
   return (
-    <AuthContext.Provider
-      value={{ isAuthenticated, user, Signup, login, logout }}
-    >
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext)!;

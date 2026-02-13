@@ -2,17 +2,12 @@ const express = require("express");
 const Bag = require("../models/Bag");
 const Order = require("../models/Order");
 const router = express.Router();
-const mongoose = require("mongoose");
 
 function genrateRandomTracking() {
   const carriers = ["Delhivery", "Bluedart", "Ecom Express", "XpressBees"];
-  const statusOptions = [
-    "Shipped",
-    "Out for Delivery",
-    "Delivered",
-    "In Transit",
-  ];
+  const statusOptions = ["Shipped", "Out for Delivery", "Delivered", "In Transit"];
   const locations = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Pune"];
+
   const randomcarrier = carriers[Math.floor(Math.random() * carriers.length)];
   const randomstatusOptions =
     statusOptions[Math.floor(Math.random() * statusOptions.length)];
@@ -41,50 +36,65 @@ function genrateRandomTracking() {
     ],
   };
 }
+
+// ✅ CREATE ORDER
 router.post("/create/:userId", async (req, res) => {
   try {
     const userid = req.params.userId;
     const bag = await Bag.find({ userId: userid }).populate("productId");
+
     if (bag.length === 0) {
       return res.status(400).json({ message: "No item in the bag" });
     }
-    const orderitem = bag.map((item) => ({
+
+    const orderItems = bag.map((item) => ({
       productId: item.productId._id,
       size: item.size,
       price: item.productId.price,
       quantity: item.quantity,
     }));
-    const total = orderitem.reduce(
-      (sum, item) => sum + item.price + item.quantity,
+
+    const total = orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
       0
     );
+
     const newOrder = new Order({
       userId: userid,
       date: new Date().toISOString(),
       status: "Processing",
-      item: orderitem,
-      total: total,
+      items: orderItems,
+      total,
       shippingAddress: req.body.shippingAddress,
-      paymentMethod:req.body.paymentMethod,
+      paymentMethod: req.body.paymentMethod,
       tracking: genrateRandomTracking(),
     });
+
     await newOrder.save();
     await Bag.deleteMany({ userId: userid });
-    res.status(200).json({ message: "Order placed successfully" });
+
+    res.status(201).json({
+      message: "Order placed successfully",
+      order: newOrder,
+    });
   } catch (error) {
-    console.log(error);
+    console.log("Order error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 });
+
+// ✅ GET USER ORDERS (Transactions page)
 router.get("/user/:userid", async (req, res) => {
   try {
-    const order = await Order.find({ userId: req.params.userid }).populate(
+    const orders = await Order.find({ userId: req.params.userid }).populate(
       "items.productId"
     );
-    res.status(200).json(order);
+    res.status(200).json(orders);
   } catch (error) {
-    console.log(error);
+    console.log("Fetch orders error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 });
+
 module.exports = router;
+

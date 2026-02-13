@@ -2,36 +2,46 @@ const express = require("express");
 const Bag = require("../models/Bag");
 const router = express.Router();
 
+// ADD TO BAG
 router.post("/", async (req, res) => {
   try {
-    const Bags = new Bag(req.body);
-    const saveitem = await Bags.save();
-    res.status(200).json(saveitem);
+    const { userId, productId, size, quantity } = req.body;
+
+    if (!userId || !productId || !size) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const newItem = new Bag({ userId, productId, size, quantity });
+    const savedItem = await newItem.save();
+    res.status(201).json(savedItem);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("Add to bag error:", error);
+    res.status(500).json({ message: "Failed to add to bag" });
   }
 });
 
-router.get("/:userid", async (req, res) => {
+// GET USER BAG
+router.get("/:userId", async (req, res) => {
   try {
-    const bag = await Bag.find({ userId: req.params.userid }).populate(
+    const bag = await Bag.find({ userId: req.params.userId }).populate(
       "productId"
     );
     res.status(200).json(bag);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("Fetch bag error:", error);
+    res.status(500).json({ message: "Failed to fetch bag" });
   }
 });
 
-router.delete("/:itemid", async (req, res) => {
+// DELETE ITEM
+router.delete("/:itemId", async (req, res) => {
   try {
-    await Bag.findByIdAndDelete(req.params.itemid);
+    await Bag.findByIdAndDelete(req.params.itemId);
     res.status(200).json({ message: "Item removed from bag" });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Error removing item from bag" });
+    console.error("Delete bag error:", error);
+    res.status(500).json({ message: "Failed to delete item" });
   }
 });
+
 module.exports = router;

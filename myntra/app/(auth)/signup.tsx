@@ -13,9 +13,11 @@ import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/themeContext";
 
 export default function Signup() {
-  const { Signup } = useAuth();
+  const { signup } = useAuth();
+  const { colors } = useTheme();
   const router = useRouter();
   const [isloading, setisloading] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,19 +67,19 @@ export default function Signup() {
 
   const handleSignup = async () => {
     if (validateForm()) {
-      // Here you would typically make an API call to register the user
       try {
         setisloading(true);
-        await Signup(formData.fullName, formData.email, formData.password);
+        await signup(formData.fullName, formData.email, formData.password);
         router.replace("/(tabs)");
       } catch (error) {
         console.error(error);
       } finally {
         setisloading(false);
       }
-      router.replace("/(tabs)");
     }
   };
+
+  const styles = getStyles(colors);
 
   return (
     <ScrollView
@@ -99,8 +101,12 @@ export default function Signup() {
 
         <View style={styles.inputGroup}>
           <TextInput
-            style={[styles.input, errors.fullName && styles.inputError]}
+            style={[
+              styles.input,
+              errors.fullName && styles.inputError,
+            ]}
             placeholder="Full Name"
+            placeholderTextColor={colors.textSecondary}
             value={formData.fullName}
             onChangeText={(text) =>
               setFormData({ ...formData, fullName: text })
@@ -113,10 +119,16 @@ export default function Signup() {
 
         <View style={styles.inputGroup}>
           <TextInput
-            style={[styles.input, errors.email && styles.inputError]}
+            style={[
+              styles.input,
+              errors.email && styles.inputError,
+            ]}
             placeholder="Email"
+            placeholderTextColor={colors.textSecondary}
             value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
+            onChangeText={(text) =>
+              setFormData({ ...formData, email: text })
+            }
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -135,6 +147,7 @@ export default function Signup() {
             <TextInput
               style={styles.passwordInput}
               placeholder="Password"
+              placeholderTextColor={colors.textSecondary}
               value={formData.password}
               onChangeText={(text) =>
                 setFormData({ ...formData, password: text })
@@ -146,9 +159,9 @@ export default function Signup() {
               onPress={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeOff size={20} color="#666" />
+                <EyeOff size={20} color={colors.textSecondary} />
               ) : (
-                <Eye size={20} color="#666" />
+                <Eye size={20} color={colors.textSecondary} />
               )}
             </TouchableOpacity>
           </View>
@@ -156,6 +169,7 @@ export default function Signup() {
             <Text style={styles.errorText}>{errors.password}</Text>
           ) : null}
         </View>
+
         <TouchableOpacity
           style={styles.button}
           onPress={handleSignup}
@@ -172,97 +186,107 @@ export default function Signup() {
           style={styles.loginLink}
           onPress={() => router.push("/login")}
         >
-          <Text style={styles.loginText}>Already have an account? Login</Text>
+          <Text style={styles.loginText}>
+            Already have an account? Login
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  backgroundImage: {
-    width: "100%",
-    height: 300,
-    position: "absolute",
-    top: 0,
-  },
-  formContainer: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    marginTop: 250,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#3e3e3e",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 30,
-  },
-  inputGroup: {
-    marginBottom: 15,
-  },
-  input: {
-    backgroundColor: "#f5f5f5",
-    padding: 15,
-    borderRadius: 10,
-    fontSize: 16,
-  },
-  inputError: {
-    borderWidth: 1,
-    borderColor: "#ff3f6c",
-  },
-  errorText: {
-    color: "#ff3f6c",
-    fontSize: 12,
-    marginTop: 5,
-    marginLeft: 5,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 10,
-  },
-  passwordInput: {
-    flex: 1,
-    padding: 15,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    padding: 15,
-  },
-  button: {
-    backgroundColor: "#ff3f6c",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  loginLink: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  loginText: {
-    color: "#ff3f6c",
-    fontSize: 16,
-  },
-});
+/* ---------- THEME-AWARE STYLES ---------- */
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    backgroundImage: {
+      width: "100%",
+      height: 300,
+      position: "absolute",
+      top: 0,
+    },
+    formContainer: {
+      flex: 1,
+      padding: 20,
+      backgroundColor: colors.card,
+      marginTop: 250,
+      borderTopLeftRadius: 30,
+      borderTopRightRadius: 30,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "bold",
+      marginBottom: 10,
+      color: colors.text,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginBottom: 30,
+    },
+    inputGroup: {
+      marginBottom: 15,
+    },
+    input: {
+      backgroundColor: colors.inputBackground,
+      color: colors.text,
+      padding: 15,
+      borderRadius: 10,
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    inputError: {
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+    errorText: {
+      color: colors.primary,
+      fontSize: 12,
+      marginTop: 5,
+      marginLeft: 5,
+    },
+    passwordContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.inputBackground,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    passwordInput: {
+      flex: 1,
+      padding: 15,
+      fontSize: 16,
+      color: colors.text,
+    },
+    eyeIcon: {
+      padding: 15,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 15,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 20,
+    },
+    buttonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    loginLink: {
+      marginTop: 20,
+      alignItems: "center",
+    },
+    loginText: {
+      color: colors.primary,
+      fontSize: 16,
+    },
+  });

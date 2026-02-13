@@ -7,29 +7,41 @@ const productrouter = require("./routes/Productroutes");
 const Bagroutes = require("./routes/Bagroutes");
 const Wishlistroutes = require("./routes/Wishlistroutes");
 const OrderRoutes = require("./routes/OrderRoutes");
-const cors = require('cors');
+const cors = require("cors");
+const transactionRoutes = require("./routes/TransactionRoutes");
+
+
 dotenv.config();
 const app = express();
+
 app.use(express.json());
-app.use(cors({
-  origin: '*', 
-  credentials: true, 
-}));
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+);
+
 app.get("/", (req, res) => {
-  res.send("✅ Myntra backend in working");
+  res.send("✅ Myntra backend is working");
 });
+
+// base route is /user
 app.use("/user", userrouter);
 app.use("/category", categoryrouter);
 app.use("/product", productrouter);
 app.use("/bag", Bagroutes);
 app.use("/wishlist", Wishlistroutes);
-app.use("/Order", OrderRoutes);
+app.use("/order", OrderRoutes);
+app.use("/transactions", transactionRoutes);
+
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("Mongodb connected");
+    console.log("MongoDB connected");
   })
   .catch((err) => console.log(err));
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
