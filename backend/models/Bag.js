@@ -12,8 +12,20 @@ const BagItemSchema = new mongoose.Schema(
       ref: "Product",
       required: true,
     },
-    size: { type: String, required: true },
-    quantity: { type: Number, default: 1 },
+    size: { 
+      type: String, 
+      required: true 
+    },
+    quantity: { 
+      type: Number, 
+      default: 1 
+    },
+
+    // ✅ NEW FIELD
+    savedForLater: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

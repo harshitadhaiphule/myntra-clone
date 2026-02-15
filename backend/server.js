@@ -9,6 +9,8 @@ const Wishlistroutes = require("./routes/Wishlistroutes");
 const OrderRoutes = require("./routes/OrderRoutes");
 const cors = require("cors");
 const transactionRoutes = require("./routes/TransactionRoutes");
+const historyRoutes = require("./routes/historyRoutes");
+const recommendationRoutes = require("./routes/recommendationRoutes");
 
 
 dotenv.config();
@@ -34,6 +36,8 @@ app.use("/bag", Bagroutes);
 app.use("/wishlist", Wishlistroutes);
 app.use("/order", OrderRoutes);
 app.use("/transactions", transactionRoutes);
+app.use("/history", historyRoutes);
+app.use("/recommendations", recommendationRoutes);
 
 
 mongoose
