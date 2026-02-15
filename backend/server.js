@@ -11,6 +11,7 @@ const cors = require("cors");
 const transactionRoutes = require("./routes/TransactionRoutes");
 const historyRoutes = require("./routes/historyRoutes");
 const recommendationRoutes = require("./routes/recommendationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use("/order", OrderRoutes);
 app.use("/transactions", transactionRoutes);
 app.use("/history", historyRoutes);
 app.use("/recommendations", recommendationRoutes);
+app.use("/notifications", notificationRoutes);
 
 
 mongoose

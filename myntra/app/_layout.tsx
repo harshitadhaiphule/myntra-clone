@@ -8,6 +8,8 @@ import React from "react";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider, useTheme } from "@/context/themeContext";
+import { setupNotificationListeners } from "../utils/notificationListener";
+
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,6 +31,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync();
+     setupNotificationListeners();
   }, [loaded]);
 
   if (!loaded) return null;
